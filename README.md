@@ -8,7 +8,7 @@ and EC2 Instances to host [Ceeties](https://ceeties.com) Django backend applicat
 
 Then the Ansible playbooks will deploy the Django application.
 
-![Infrastructure Diagram.](./files/ELB Project.png)
+![Infrastructure Diagram.](https://github.com/kstopa/aws_django/blob/master/files/ELB%20Project.png)
 
 
 ## Prerequisites
