@@ -14,9 +14,10 @@ provider "aws" {
 
 
 ## AWS ASG Launch Config
-resource "aws_launch_configuration" "alconf" {
-  image_id               = "ami-0ebef2838fb2605b7"
-  instance_type          = "t2.micro"
+# Ubuntu 22.04 LTS ARM64
+resource "aws_launch_configuration" "as_conf" {
+  image_id               = "ami-0748d13ffbc370c2b"
+  instance_type          = "t4g.micro"
   key_name               = var.ami_key_pair_name
   security_groups        = [aws_security_group.instance.id]
   user_data              = file("user_data.sh")
@@ -38,17 +39,17 @@ data "aws_availability_zones" "all" {}
 
 ## AWS ASG
 resource "aws_autoscaling_group" "asg" {
-  launch_configuration = aws_launch_configuration.alconf.id
+  launch_configuration = aws_launch_configuration.as_conf.id
   availability_zones   = data.aws_availability_zones.all.names
   
-  min_size = 2
+  min_size = 1
   max_size = 2
 
   load_balancers    = [aws_elb.elb.name]
   health_check_type = "ELB"
 
   # Make sure db exists before Django calls it.
-  depends_on            = [aws_db_instance.maindb]  
+  depends_on            = [aws_db_instance.django_db]
 
   tag {
     key                 = "Name"
@@ -92,18 +93,45 @@ resource "aws_lb_cookie_stickiness_policy" "elb-stickiness" {
 
 
 ## Our Database
-resource "aws_db_instance" "maindb" {
-  allocated_storage       = 10
-  engine                  = "mysql"
-  engine_version          = "8.0.20"
-  instance_class          = "db.t2.micro"
-  name                    = "django"
+resource "aws_db_instance" "django_db" {
+  identifier              = "django-postgis-db"
+  instance_class          = "db.t3.micro"  # Change instance class as per your requirement (eg. db.t3.medium)
+  engine                  = "postgres"
+  allocated_storage       = 20
+  storage_type            = "gp2"
+  db_name                 = var.db_name
   username                = var.db_username
   password                = var.db_password
+  publicly_accessible     = false
+  multi_az                = false
   skip_final_snapshot     = true
-  identifier              = "djangodb"
+
+  # Security Group for the RDS instance
   vpc_security_group_ids  = [aws_security_group.allow_rds.id]
+
+  # Apply tags
+  tags = {
+    Name = "PostGIS"
+  }
 }
+
+# Provisioner to enable PostGIS extension
+# --secret-arn ${aws_db_instance.django_db.secret.0.arn}
+resource "null_resource" "enable_postgis" {
+  depends_on = [aws_db_instance.django_db]
+
+  provisioner "local-exec" {
+    command = <<EOT
+      aws rds wait db-instance-available --db-instance-identifier ${aws_db_instance.django_db.identifier}
+      echo ${var.db_password} psql -u ${var.db_username} -d ${var.db_name} -h ${aws_db_instance.django_db.address} -c "CREATE EXTENSION postgis;"
+    EOT
+  }
+}
+
+# Installs postgres PostGIS extension
+#resource "postgresql_extension" "postgis" {
+#  name = "postgis"
+#}
 
 
 
@@ -176,8 +204,8 @@ resource "aws_security_group" "allow_rds" {
 
   # Inbound allow sql
   ingress {
-    from_port         = 3306
-    to_port           = 3306
+    from_port         = 5432
+    to_port           = 5432
     protocol          = "tcp"
     security_groups   = [aws_security_group.instance.id]
   }

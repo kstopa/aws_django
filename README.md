@@ -56,11 +56,13 @@ On MacOS, you can use Homebrew to install AWS CLI.
 
 ```bash
 brew install awscli
+aws configure
 ```
 
 
+### Final review
 
-## Assumptions
+Before you start the deployment with Terraform and Ansible, make sure again that you have done the following:
 
 1) You have AWS SSH Key pair generated for the EC2 instances
 2) AWS cli is working so you can deploy using Terraform
@@ -68,29 +70,36 @@ brew install awscli
 4) You have Ansible installed
 
 
-## Use Terraform to deploy our Load Balancer, ASG, and EC2 Instance
+## Deploy our Load Balancer, ASG, RDS and EC2 Instance with Terraform
 
-1) Create tf/secret.tfvars file and set AWS SSH key pair name like so:
+Along this process you will use a set of files included in to the `tf` folder. 
 
+1) Create `tf/secret.tfvars` file and set AWS SSH key pair name like so:
+
+```text
 db_username = "django"
 db_password = "foobarbaz"
+db_name = "ceeties"
 ami_key_pair_name = "my-ssh-key1"
 aws_region = "us-west-1"
+```
 
-2) Check the plan
+2) Review `mian.tf` file. You may consider to set different instance types, volume sizes, etc. 
+Finally, you can check the plan with:
 
-> terraform init
+>terraform init
+
 > terraform plan -var-file="secret.tfvars"
 
-2) Deploy via Terraform.
-
+3) If everything looks good on the output and no errors are produced you can deploy via Terraform.
 
 > terraform init -upgrade
+
 > terraform apply -var-file="secret.tfvars"
 
 Note the output value "clb_dns_name" which is the load balancer DNS name for the application.
 
-3) Get Instance Public IP Address using ASG "name"
+4) Get Instance Public IP Address using ASG "name"
 We need the public IP address of the EC2 instance in our autoscale group.  Use the autoscaling group name in the command below to get it's public IP Address (or get it by logging into AWS - EC2).
 
 > sh aws-asg-instances-ip.sh
@@ -107,6 +116,16 @@ Set these values in the Ansible "hosts" file:
 
 NOTE: The django-hitcount/ directory has the app source code.  You can apply updates then you need to create a new django-hitcount.tar.gz file to upload to changes to the app.
  
+### Get you app code
+
+First download and app code from a repo. Set the repo '.zip' download url.
+
+```bash
+export APP_ZIP_URL="https://github.com/thornomad/django-hitcount/archive/refs/heads/develop.zip"
+wget $APP_ZIP_URL -O django-app.zip
+
+```
+
 tar -czvf django-hitcount.tar.gz django-hitcount/
 
 Now run Ansible playbooks below:
@@ -126,5 +145,5 @@ It may take a minute for the load balancer to health check the instance and proc
 
 ## License
 
-This project is a fork of the [AWS Django project](https://github.com/jose-guevarra/aws_django) and adapted for the Ceeties Django application by [OD.C](https://opendev.consulting).
+This project is a fork of the [AWS Django project](https://github.com/jose-guevarra/aws_django) and adapted for the Ceeties backend application by [OD.C](https://opendev.consulting).
 For additional documentation, see the post [Deploy Django on AWS with Terraform and Ansible](https://dataonfire.medium.com/deploy-django-on-aws-with-terraform-and-ansible-part-1-f2eb49b00753).

@@ -14,7 +14,7 @@ output "asg_id" {
 
 
 output "db_dns_name" {
-  value       = aws_db_instance.maindb.address
+  value       = aws_db_instance.django_db.address
   description = "DNS Address of db."
 }
 
