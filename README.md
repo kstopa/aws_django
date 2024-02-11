@@ -1,14 +1,64 @@
-# AWS HitCount
+# AWS 
 
 
-# Goal: In AWS, setup a page hit counter in Django.
+## Introduction
 
-These Terraform scripts will deploy a AWS load balancer, autoscale group, and EC2 Instance to host our Django application. Then the Ansible playbooks will deploy the Django application. 
+These Terraform scripts will deploy a AWS load balancer, autoscale group, and EC2 Instance to 
+host [Ceeties](https://ceeties.com) Django application. Then the Ansible playbooks will deploy 
+the Django application.
 
-![Infrastructure Diagram.](https://github.com/jose-guevarra/aws_django/blob/master/files/ELB%20Project.png)
+![Infrastructure Diagram.](./files/ELB Project.png)
 
-Note: Instead of writing my own hit count application, I will be using the following Django app:
-https://github.com/thornomad/django-hitcount
+
+
+## Prerequisites
+
+### Set you AWS credentials
+
+You need to set your AWS credentials in your environment.  You can do this by setting the following environment variables:
+
+```bash
+export AWS_ACCESS_KEY="your_access_key"
+export AWS_SECRET="your_secret_key"
+```
+
+Or you can use the AWS CLI to set your credentials.
+
+```bash
+aws configure
+```
+
+
+### Install Terraform
+
+On MacOs, you can use Homebrew to install Terraform.
+
+```bash
+brew tap hashicorp/tap
+brew install hashicorp/tap/terraform
+```
+
+For other OS check https://developer.hashicorp.com/terraform/install?product_intent=terraform
+
+### Install Ansible
+
+On MacOS, you can use Homebrew to install Ansible.
+
+```bash
+brew install ansible
+```
+
+Other OS check https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#control-node-requirements
+
+### Install AWS CLI
+
+On MacOS, you can use Homebrew to install AWS CLI.
+
+```bash
+brew install awscli
+```
+
+
 
 ## Assumptions
 
@@ -27,9 +77,15 @@ db_password = "foobarbaz"
 ami_key_pair_name = "my-ssh-key1"
 aws_region = "us-west-1"
 
-2) Deploy via Terraform.
+2) Check the plan
+
 > terraform init
->
+> terraform plan -var-file="secret.tfvars"
+
+2) Deploy via Terraform.
+
+
+> terraform init -upgrade
 > terraform apply -var-file="secret.tfvars"
 
 Note the output value "clb_dns_name" which is the load balancer DNS name for the application.
@@ -61,8 +117,14 @@ Now run Ansible playbooks below:
 
 ## Go to Load Balancer endpoint
 
-You should now be able to visit the load balancer endpoint and see a page hit counter. It may take a minute for the load balancer to health check the instance and process requests correctly.
+You should now be able to visit the load balancer endpoint and see a Ceeties backend working. 
+It may take a minute for the load balancer to health check the instance and process requests correctly.
 
 ## Clean up
 
 > terraform destroy -var-file="secret.tfvars"
+
+## License
+
+This project is a fork of the [AWS Django project](https://github.com/jose-guevarra/aws_django) and adapted for the Ceeties Django application by [OD.C](https://opendev.consulting).
+For additional documentation, see the post [Deploy Django on AWS with Terraform and Ansible](https://dataonfire.medium.com/deploy-django-on-aws-with-terraform-and-ansible-part-1-f2eb49b00753).
