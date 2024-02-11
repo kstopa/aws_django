@@ -3,12 +3,12 @@
 
 ## Introduction
 
-These Terraform scripts will deploy a AWS load balancer, autoscale group, and EC2 Instance to 
-host [Ceeties](https://ceeties.com) Django application. Then the Ansible playbooks will deploy 
-the Django application.
+These Terraform scripts will deploy a AWS load balancer, autoscale group, RDS Postgres database with PostGIS extension 
+and EC2 Instances to host [Ceeties](https://ceeties.com) Django backend application. 
+
+Then the Ansible playbooks will deploy the Django application.
 
 ![Infrastructure Diagram.](./files/ELB Project.png)
-
 
 
 ## Prerequisites
