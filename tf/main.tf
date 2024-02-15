@@ -20,7 +20,20 @@ resource "aws_launch_configuration" "as_conf" {
   instance_type          = "t4g.micro"
   key_name               = var.ami_key_pair_name
   security_groups        = [aws_security_group.instance.id]
-  user_data              = file("user_data.sh")
+  user_data              = <<-EOF
+      #!/bin/bash
+      sudo apt-get update
+      sudo apt-get -y -qq upgrade
+      sudo apt-get -y -qq install fail2ban git rdiff-backup libpq-dev uwsgi uwsgi-plugin-python3 nginx unzip
+      sudo apt-get -y -qq install python3-pip python3-venv
+      echo "export MY_VARIABLE=value" >> /etc/environment
+      echo "export RDS_DB_NAME=${var.db_name}" >> /etc/environment
+      echo "export RDS_USERNAME=${var.db_username}" >> /etc/environment
+      echo "export RDS_PASSWORD=${var.db_password}" >> /etc/environment
+      echo "export RDS_HOSTNAME=${aws_db_instance.django_db.address}" >> /etc/environment
+      echo "export RDS_PORT=5432" >> ~/.bashrc
+      echo "export DJANGO_SECRET_KEY=${var.django_secret_key}" >> /etc/environment
+      EOF
 
   root_block_device {
       volume_size = "8"
@@ -115,8 +128,7 @@ resource "aws_db_instance" "django_db" {
   }
 }
 
-# Provisioner to enable PostGIS extension
-# --secret-arn ${aws_db_instance.django_db.secret.0.arn}
+# Provisioner to enable PostGIS extension and set DB and Django app environment variables
 resource "null_resource" "enable_postgis" {
   depends_on = [aws_db_instance.django_db]
 
@@ -127,13 +139,6 @@ resource "null_resource" "enable_postgis" {
     EOT
   }
 }
-
-# Installs postgres PostGIS extension
-#resource "postgresql_extension" "postgis" {
-#  name = "postgis"
-#}
-
-
 
 ## SECURITY GROUPS
 

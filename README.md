@@ -104,39 +104,44 @@ We need the public IP address of the EC2 instance in our autoscale group.  Use t
 
 > sh aws-asg-instances-ip.sh
 
+----------------------------------------------
+## Run Ansible to deploy a Django app
 
-## Run Ansible to deploy Django-hitcount app
+Set these values in the Ansible 'ansible/hosts.tpl' file:
 
-Set these values in the Ansible "hosts" file:
 1. EC2 instance public IPs - "hosts".
 2. Set SSH key file path and filename - ansible_ssh_private_key_file.
 3. Set "clb_dns_name" to load balancer public domain name.
 4. Set "aws_db_dns_name" to load balancer public domain name.
 5. Set "aws_db_username" and "aws_db_password"
 
-NOTE: The django-hitcount/ directory has the app source code.  You can apply updates then you need to create a new django-hitcount.tar.gz file to upload to changes to the app.
+
+### Setup your vars
+
+Create a new file at `ansible/hosts` from the template at `ansible/hosts.tpl` and set the the variables that you get
+after running Terraform script.
  
 ### Get you app code
 
-First download and app code from a repo. Set the repo '.zip' download url.
+First set the path of your Django app. For an quick example django app you can clone 
+[Django Hitcount](https://github.com/thornomad/django-hitcount) app.
 
 ```bash
-export APP_ZIP_URL="https://github.com/thornomad/django-hitcount/archive/refs/heads/develop.zip"
-wget $APP_ZIP_URL -O django-app.zip
-
+export DJANGO_APP_PATH="/path/to/your/django/app"
+zip -r django-app.zip $DJANGO_APP_PATH
 ```
 
-tar -czvf django-hitcount.tar.gz django-hitcount/
+### Run Ansible playbooks
 
 Now run Ansible playbooks below:
 
 > ansible-playbook -i hosts deploy.yaml
->
+
 > ansible-playbook -i hosts config_files.yaml
 
 ## Go to Load Balancer endpoint
 
-You should now be able to visit the load balancer endpoint and see a Ceeties backend working. 
+You should now be able to visit the load balancer endpoint and see your Django App working.
 It may take a minute for the load balancer to health check the instance and process requests correctly.
 
 ## Clean up
@@ -145,5 +150,7 @@ It may take a minute for the load balancer to health check the instance and proc
 
 ## License
 
-This project is a fork of the [AWS Django project](https://github.com/jose-guevarra/aws_django) and adapted for the Ceeties backend application by [OD.C](https://opendev.consulting).
+This project is a fork of the [AWS Django project](https://github.com/jose-guevarra/aws_django) and adapted for the 
+Ceeties backend application by [OD.C](https://opendev.consulting).
+
 For additional documentation, see the post [Deploy Django on AWS with Terraform and Ansible](https://dataonfire.medium.com/deploy-django-on-aws-with-terraform-and-ansible-part-1-f2eb49b00753).
