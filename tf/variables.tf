@@ -45,4 +45,16 @@ variable "db_name" {
     default     = "django_app"
 }
 
+variable "django_secret_key" {
+    description = "Django secret key"
+    type        = string
+    sensitive   = true
+}
+
+variable "django_settings_module" {
+    description = "Django settings module"
+    type        = string
+    default     = "django_app.settings"
+}
+
 
