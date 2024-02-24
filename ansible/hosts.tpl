@@ -1,7 +1,9 @@
 all:
     hosts:
         HOST_PUBLIC_IP1:
+            ansible_host: YOU.R.IP.AD1
         HOST_PUBLIC_IP2:
+            ansible_host: YOR.R.IP.AD2
     vars:
         ansible_user: ubuntu
         ansible_ssh_private_key_file: FULL_PATH_TO_KEYS/keyname.pem

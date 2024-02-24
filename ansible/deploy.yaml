@@ -1,53 +1,76 @@
----
-- hosts: all
-  become: True
-  gather_facts: no
+- name: Create virtualenv
+  hosts: all
+  become: true
+  gather_facts: false
 
   tasks:
-  - name: Copy Django project to hosts.
-    unarchive:
-      src=../django-hitcount.tar.gz
-      dest=/var/www/
-  - name: create static_root dir
-    file: path={{ static_dir }} state=directory mode=0755
-          owner=ubuntu
-  - name: Install virtualenv using pip
-    pip: 
-         name=virtualenv
-         executable=pip3
-  - name: install python requirements
-    pip: requirements={{ django_dir }}/requirements.txt 
-         virtualenv={{ home_dir }}/django-hitcount
-         virtualenv_python=python3.8
-        
-- hosts: all
-  gather_facts: no
-  tasks:
-  - name: Django settings file.
-    template: src=../config/django.settings.py.tpml dest={{ django_dir }}/example_project/settings.py
-  - name: Django collect static
-    community.general.django_manage: command=collectstatic 
-                                     app_path={{ django_dir }}
-                                     virtualenv=/var/www/django-hitcount
-  - name: Django migrate
-    run_once: true
-    community.general.django_manage: command=migrate 
-                                     app_path={{ django_dir }}
-                                     virtualenv=/var/www/django-hitcount  
+    - name: Create Django directory
+      ansible.builtin.file:
+        path: "{{ django_dir }}"
+        state: directory
 
-- hosts: all
-  become: True
-  gather_facts: no
+    - name: Create venv directory
+      ansible.builtin.file:
+        path: "{{ virtualenv_dir }}"
+        state: directory
+
+    - name: Copy Django project to hosts
+      ansible.builtin.unarchive:
+        src: ../django-app.zip
+        dest: "{{ django_dir }}"
+        owner: ubuntu
+
+    - name: Create static_root dir
+      ansible.builtin.file:
+        path: "{{ static_dir }}"
+        state: directory
+        mode: "0755"
+        owner: ubuntu
+
+    - name: Install python requirements
+      ansible.builtin.pip:
+        chdir: "{{ django_dir }}"
+        virtualenv_python: python3
+        requirements: "{{ django_dir }}/requirements.txt"
+        virtualenv: "{{ virtualenv_dir }}"
+
+
+- name: Install Django app
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Django collect static
+      community.general.django_manage:
+        command: collectstatic
+        app_path: "{{ django_dir }}"
+        virtualenv: "{{ virtualenv_dir }}"
+
+    - name: Django makemigrations
+      community.general.django_manage:
+        command: makemigrations ceeties
+        app_path: "{{ django_dir }}"
+        virtualenv: "{{ virtualenv_dir }}"
+
+    - name: Django migrate
+      community.general.django_manage:
+        command: migrate
+        app_path: "{{ django_dir }}"
+        virtualenv: "{{ virtualenv_dir }}"
+
+- name: Setup server
+  hosts: all
+  become: true
+  gather_facts: false
   tasks:
   - name: Set group on files
-    file: path={{ home_dir }}/django-hitcount group=www-data state=directory recurse=yes
+    file: path={{ home_dir }}/django-app group=www-data state=directory recurse=yes
   - name: Set perms on directories
-    shell: find {{ home_dir }}/django-hitcount -type d -exec chmod 755 {} \;
+    shell: find {{ home_dir }}/django-app -type d -exec chmod 755 {} \;
   - name: Set perms on files
-    shell: find {{ home_dir }}/django-hitcount -type f -exec chmod 644 {} \;
+    shell: find {{ home_dir }}/django-app -type f -exec chmod 644 {} \;
 #  - name: Set write perms to dir for db
-#    file: path={{ home_dir }}/django-hitcount mode=g+w
+#    file: path={{ home_dir }}/django-app mode=g+w
 #  - name: Set write perms to dir for db
-#    file: path={{ home_dir }}/django-hitcount/example_project mode=g+w
+#    file: path={{ home_dir }}/django-app/example_project mode=g+w
 
 

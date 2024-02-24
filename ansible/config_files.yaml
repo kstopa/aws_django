@@ -1,25 +1,41 @@
----
 - name: Copy configuration files
   hosts: all
-  become: True
-  gather_facts: no
+  become: true
+  gather_facts: false
 
   tasks:
-    - name: nginx config file
-      template: src=../config/django.conf dest=/etc/nginx/sites-available/django.conf
+    - name: Nginx config file
+      ansible.builtin.template:
+        src: ../config/django.conf
+        dest: /etc/nginx/sites-available/django.conf
+        mode: "0644"
       register: nginx_config
-    - name: nginx main config file
-      template: src=../config/nginx.conf dest=/etc/nginx/nginx.conf
-    - name: nginx config file symlink
-      file:
-        src=/etc/nginx/sites-available/django.conf
-        dest=/etc/nginx/sites-enabled/django.conf
-        state=link
-    - name: nginx restart
-      service: name=nginx state=restarted
-    - name: uwsgi config file
-      template: src=../config/example_project.ini dest=/etc/uwsgi/apps-enabled/example_project.ini
-      register: uwsgi_config
-    - name: uwsgi restart
-      service: name=uwsgi state=restarted
 
+    - name: Nginx main config file
+      ansible.builtin.template:
+        src: ../config/nginx.conf
+        dest: /etc/nginx/nginx.conf
+        mode: "0644"
+
+    - name: Nginx config file symlink
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/django.conf
+        dest: /etc/nginx/sites-enabled/django.conf
+        state: link
+
+    - name: UWSGI config file
+      ansible.builtin.template:
+        src: ../config/example_project.ini
+        dest: /etc/uwsgi/apps-enabled/example_project.ini
+        mode: "0644"
+      register: uwsgi_config
+
+    - name: Nginx restart
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+    - name: UWSGI restart
+      ansible.builtin.service:
+        name: uwsgi
+        state: restarted
