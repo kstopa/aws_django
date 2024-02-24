@@ -10,6 +10,13 @@ Then the Ansible playbooks will deploy the Django application.
 
 ![Infrastructure Diagram.](https://github.com/kstopa/aws_django/blob/master/files/ELB%20Project.png)
 
+## Not Production Ready
+
+This setup is a nice way of getting an introduction onto how Terraform and Ansible can help deploy your 
+Django app. However, it is not something you would want to use in production. For one, any new EC2 
+instance will need to be manually configured with Ansible to run the Django app. In terms of security, 
+it would be nice to separate the infrastructure to a 3-Tier Architecture.
+
 
 ## Prerequisites
 
@@ -82,6 +89,8 @@ db_password = "foobarbaz"
 db_name = "ceeties"
 ami_key_pair_name = "my-ssh-key1"
 aws_region = "us-west-1"
+django_secret_key="YOUR_DJANGO_SECRET_KEY"
+django_settings_module="dj_ceeties.settings.production"
 ```
 
 2) Review `mian.tf` file. You may consider to set different instance types, volume sizes, etc. 
@@ -128,16 +137,21 @@ First set the path of your Django app. For an quick example django app you can c
 
 ```bash
 export DJANGO_APP_PATH="/path/to/your/django/app"
-zip -r django-app.zip $DJANGO_APP_PATH
+export CURRENT_PATH=$(pwd)
+cd $DJANGO_APP_PATH 
+zip -r $CURRENT_PATH/django-app.zip ./* -x "*/\.*" -x "./devops/*" -x "./data/*" -x "*/__pycache__/*" -x "*/migrations/*"
+cd $CURRENT_PATH
 ```
 
 ### Run Ansible playbooks
 
 Now run Ansible playbooks below:
 
-> ansible-playbook -i hosts deploy.yaml
-
-> ansible-playbook -i hosts config_files.yaml
+```bash
+cd ansible
+ansible-playbook -i hosts deploy.yaml
+ansible-playbook -i hosts config_files.yaml
+```
 
 ## Go to Load Balancer endpoint
 
