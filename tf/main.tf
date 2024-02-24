@@ -26,13 +26,13 @@ resource "aws_launch_configuration" "as_conf" {
       sudo apt-get -y -qq upgrade
       sudo apt-get -y -qq install fail2ban git rdiff-backup libpq-dev uwsgi nginx unzip postgresql-client-14
       sudo apt-get -y -qq install python-is-python3 python3-pip python3-venv python3-psycopg2 uwsgi-plugin-python3 virtualenv gdal-bin
-      echo "export RDS_DB_NAME=${var.db_name}" >> /etc/environment
-      echo "export RDS_USERNAME=${var.db_username}" >> /etc/environment
-      echo "export RDS_PASSWORD=\"${var.db_password}\"" >> /etc/environment
-      echo "export RDS_HOSTNAME=${aws_db_instance.django_db.address}" >> /etc/environment
-      echo "export RDS_PORT=5432" >> /etc/environment
-      echo "export SECRET_KEY=\"${var.django_secret_key}\"" >> /etc/environment
-      echo "export DJANGO_SETTINGS_MODULE=${var.django_settings_module}" >> /etc/environment
+      echo "RDS_DB_NAME=${var.db_name}" >> /etc/environment
+      echo "RDS_USERNAME=${var.db_username}" >> /etc/environment
+      echo "RDS_PASSWORD=\"${var.db_password}\"" >> /etc/environment
+      echo "RDS_HOSTNAME=${aws_db_instance.django_db.address}" >> /etc/environment
+      echo "RDS_PORT=5432" >> /etc/environment
+      echo "SECRET_KEY=\"${var.django_secret_key}\"" >> /etc/environment
+      echo "DJANGO_SETTINGS_MODULE=${var.django_settings_module}" >> /etc/environment
       EOF
 
   root_block_device {
