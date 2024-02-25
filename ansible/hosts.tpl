@@ -11,6 +11,7 @@ all:
         django_dir: "{{ home_dir }}/django-hitcount/example_project"
         static_dir: "{{ home_dir }}/static"
         django_project: example_project
+        domain_name: example.com
         clb_dns_name: AWS_LOADBALANCER_DNS_NAME_GOES_HERE
         aws_db_dns_name: AWS_DB_DNS_NAME_GOES_HERE
         aws_db_username: AWS_DB_USERNAME_GOES_HERE

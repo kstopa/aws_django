@@ -4,6 +4,11 @@
   gather_facts: false
 
   tasks:
+    - name: Delete default site configuration
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
     - name: Nginx config file
       ansible.builtin.template:
         src: ../config/django.conf
