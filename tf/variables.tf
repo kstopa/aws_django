@@ -7,16 +7,16 @@ variable "aws_region" {
 }
 
 variable "server_port" {
-  description = "The port the web server will use for HTTP requests"
+  description = "The port the web server will use for HTTP/S requests. Set 80 or 443 for production"
   type        = number
-  default     = 80
+  default     = 443
 }
 
 
 variable "elb_port" {
   description     = ""
   type            = number
-  default         = 80
+  default         = 443
 
 }
 

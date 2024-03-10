@@ -28,11 +28,13 @@ resource "aws_launch_configuration" "as_conf" {
       sudo apt-get -y -qq install python-is-python3 python3-pip python3-venv python3-psycopg2 uwsgi-plugin-python3 virtualenv gdal-bin
       echo "RDS_DB_NAME=${var.db_name}" >> /etc/environment
       echo "RDS_USERNAME=${var.db_username}" >> /etc/environment
-      echo "RDS_PASSWORD=\"${var.db_password}\"" >> /etc/environment
+      echo "RDS_PASSWORD=${var.db_password}" >> /etc/environment
       echo "RDS_HOSTNAME=${aws_db_instance.django_db.address}" >> /etc/environment
       echo "RDS_PORT=5432" >> /etc/environment
       echo "SECRET_KEY=\"${var.django_secret_key}\"" >> /etc/environment
       echo "DJANGO_SETTINGS_MODULE=${var.django_settings_module}" >> /etc/environment
+      # Install ollama for content generation
+      curl -fsSL https://ollama.com/install.sh | sh
       EOF
 
   root_block_device {
@@ -59,7 +61,9 @@ resource "aws_autoscaling_group" "asg" {
   max_size = 2
 
   load_balancers    = [aws_elb.elb.name]
-  health_check_type = "ELB"
+  # health_check_type = "ELB"
+  health_check_type = "EC2"
+  health_check_grace_period = 300
 
   # Make sure db exists before Django calls it.
   depends_on            = [aws_db_instance.django_db]
@@ -145,8 +149,15 @@ resource "null_resource" "enable_postgis" {
 resource "aws_security_group" "instance" {
   name = "terraform-instance"
   ingress {
-    from_port   = var.server_port
-    to_port     = var.server_port
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -186,6 +197,14 @@ resource "aws_security_group" "elb" {
   ingress {
     from_port = 80
     to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Inbound HTTP from everywhere
+  ingress {
+    from_port = 443
+    to_port = 443
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

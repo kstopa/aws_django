@@ -1,0 +1,21 @@
+- name: Install and configure SSL certificate using Certbot
+  hosts: all
+  become: true
+  tasks:
+    - name: Install snapd
+      ansible.builtin.apt:
+        name: snapd
+
+    - name: Install Certbot
+      community.general.snap:
+        name: certbot
+        classic: true
+
+    - name: Generate SSL certificate with Certbot
+      ansible.builtin.shell: |
+        certbot --nginx -d {{ domain_name }} --non-interactive --agree-tos -m {{ admin_email }} --redirect
+
+    - name: Reload Nginx to apply SSL
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded

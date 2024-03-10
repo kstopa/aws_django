@@ -53,6 +53,7 @@ On MacOS, you can use Homebrew to install Ansible.
 
 ```bash
 brew install ansible
+ansible-galaxy collection install community.general
 ```
 
 Other OS check https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#control-node-requirements
@@ -153,14 +154,58 @@ ansible-playbook -i hosts deploy.yaml
 ansible-playbook -i hosts config_files.yaml
 ```
 
+#### (Optional) SSL certificate
+
+If you set your server to work at 443 port you should setup Let's Encript SSL certificate (or other by hand)/
+
+**First setup your DNS records** to point your domain the node balancer by addint an 'A' record to it.
+Then you can setup SSL certificate with Certbot by running:
+
+```bash
+ansible-playbook -i hosts certbot_ssl.yaml
+```
+
 ## Go to Load Balancer endpoint
 
 You should now be able to visit the load balancer endpoint and see your Django App working.
 It may take a minute for the load balancer to health check the instance and process requests correctly.
 
+## Final touches
+
+Add a django admin user. Connect to any EC2 instance and run:
+
+```
+cd /var/www/django-app
+. ../venv/bin/activate
+python ./manage.py createsuperuser
+```
+
 ## Clean up
 
 > terraform destroy -var-file="secret.tfvars"
+
+## Troubleshuting 
+
+If something goes wrong you can login on any EC2 instnace by using ssh:
+
+```
+ssh -i path/yo/your/certificate.pem ubuntu@IP.ADD.EC2.INS
+```
+
+Then you can check jurnaling logs with:
+
+```
+# UWSGI
+systemctl status uwsgi.service
+# Nginx
+systemctl status nginx.service
+```
+
+Or the django app log at with:
+
+```
+sudo vim /var/log/uwsgi/app/example_project.log
+```
 
 ## License
 

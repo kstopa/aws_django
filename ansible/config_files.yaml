@@ -16,6 +16,12 @@
         mode: "0644"
       register: nginx_config
 
+    - name: Create well-known directory (for Certbot)
+      ansible.builtin.file:
+        path: /var/www/django-app/.well-known
+        state: directory
+        mode: "0755"
+
     - name: Nginx main config file
       ansible.builtin.template:
         src: ../config/nginx.conf
