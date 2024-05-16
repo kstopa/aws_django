@@ -47,7 +47,7 @@
 
     - name: Django makemigrations
       community.general.django_manage:
-        command: makemigrations ceeties
+        command: makemigrations ceeties tracking
         app_path: "{{ django_dir }}"
         virtualenv: "{{ virtualenv_dir }}"
 

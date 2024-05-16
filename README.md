@@ -180,6 +180,13 @@ cd /var/www/django-app
 python ./manage.py createsuperuser
 ```
 
+To install ollama:
+
+```
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull llama2
+```
+
 ## Clean up
 
 > terraform destroy -var-file="secret.tfvars"

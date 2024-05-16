@@ -38,7 +38,7 @@ resource "aws_launch_configuration" "as_conf" {
       EOF
 
   root_block_device {
-      volume_size = "8"
+      volume_size = "16"
       volume_type = "gp2"
       delete_on_termination = true
     }
